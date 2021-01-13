@@ -1,44 +1,38 @@
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route
-} from "react-router-dom";
-import { Navbar } from "../components/Navbar";
-import { fetchData } from "../helper/fetch";
-import Cart from "../pages/Cart";
-import Home from "../pages/Home";
-import Product from "../pages/Product";
-import { loadHomeProducts } from "../store/actions/home";
+import { useDispatch, useSelector } from "react-redux";
+import { BrowserRouter as Router, Switch } from "react-router-dom";
+import { loginUser } from "../store/actions/auth";
+import AuthRouter from "./AuthRouter";
+import { Dashboard } from "./Dashboard";
+import { PrivateRoute } from "./PrivateRoute";
+import { PublicRoute } from "./PublicRoute";
 
 export default function AppRouter() {
+  const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
-  const dispatch=useDispatch()
+  useEffect(() => {
+    const isLogin = JSON.parse(localStorage.getItem("user"));
 
-  useEffect(()=>{
-
-    fetchData().then(res=>dispatch( loadHomeProducts(res) ))
-    
-  },[dispatch])
+    if (isLogin) dispatch(loginUser(isLogin));
+  }, [dispatch]);
 
   return (
     <Router>
-
-        <Navbar />
-      
       <div>
-        
         <Switch>
+          <PublicRoute
+            path="/auth"
+            isLogin={user}
+            component={AuthRouter}
+          ></PublicRoute>
 
-            <Route exact path="/" component={ Home }></Route>
-            
-            <Route exact path="/cart" component={ Cart }></Route>
-
-            <Route path="/products/" component={ Product }></Route>
-            
+          <PrivateRoute
+            path="/"
+            isLogin={user}
+            component={Dashboard}
+          ></PrivateRoute>
         </Switch>
-
       </div>
     </Router>
   );

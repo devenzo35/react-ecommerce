@@ -3,36 +3,20 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useForm } from "../hooks/useForm";
 import { useDispatch } from "react-redux";
 import { cleanCart } from "../store/actions/cart";
+import Swal from "sweetalert2";
+import { CARD_ELEMENT_OPTIONS } from "../helper/cartPayStyle";
 
 export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
   const stripe = useStripe();
   const elements = useElements();
+
   const [formValue, handleOnChange] = useForm({
     name: "",
     email: "",
   });
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const { name, email } = formValue;
-
-  
-    const CARD_ELEMENT_OPTIONS = {
-      style: {
-        base: {
-          color: "#32325d",
-          fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-          fontSmoothing: "antialiased",
-          fontSize: "16px",
-          "::placeholder": {
-            color: "#aab7c4",
-          },
-        },
-        invalid: {
-          color: "#fa755a",
-          iconColor: "#fa755a",
-        },
-      },
-    };
 
   const handlePay = async (event) => {
     event.preventDefault();
@@ -46,7 +30,7 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: finalPrice }),
+      body: JSON.stringify({ amount: finalPrice + "00" }),
     })
       .then((response) => response.json())
       .then(async (responseJson) => {
@@ -63,12 +47,21 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
         });
 
         if (result.error) {
-          console.log(result.error.message);
+          Swal.fire(
+            "The payment could not be processed!",
+            result.error.message,
+            "error"
+          );
         } else {
           if (result.paymentIntent.status === "succeeded") {
-            console.log("succeeded");
-            setPaymentForm(false)
-            dispatch(cleanCart())
+            Swal.fire(
+              "Payment success!",
+              "thanks you for your purchase!",
+              "success"
+            );
+            setPaymentForm(false);
+            dispatch(cleanCart());
+            localStorage.setItem("cartProducts", "[]");
           }
         }
       });
@@ -80,9 +73,10 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
 
   return (
     <div className="h-screen w-full bg-black bg-opacity-80 grid place-items-center absolute clickable top-0 z-10">
-      
-      <form className="bg-gray-100 w-11/12 h-4/6 rounded-sm flex flex-col relative items-center justify-evenly shadow-md p-1 animate__animated animate__fadeInRight sm:w-5/12 sm:h-5/6">
-        
+      <form
+        onSubmit={handlePay}
+        className="bg-gray-100 w-11/12 h-4/6 rounded-sm flex flex-col relative items-center justify-evenly shadow-md p-1 animate__animated animate__fadeInRight sm:w-5/12 sm:h-5/6"
+      >
         <button
           onClick={handleClosePay}
           type="button"
@@ -98,6 +92,7 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
           name="name"
           placeholder="Owner"
           className="w-10/12 text-md outline-none bg-transparent p-1 border-b-2 border-gray-800"
+          required
         ></input>
 
         <input
@@ -107,6 +102,7 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
           type="email"
           placeholder="Email"
           className="w-10/12 bg-transparent outline-none text-md p-1 border-b-2 border-gray-800"
+          required
         ></input>
 
         <CardElement
@@ -117,11 +113,10 @@ export const CheckoutForm = ({ finalPrice, setPaymentForm }) => {
         <button
           className="bg-indigo-700 text-md w-10/12 h-9 rounded-sm text-white"
           type="submit"
-          onClick={handlePay}
+          disabled={!stripe}
         >
-          Pay ${ finalPrice }
+          Pay ${finalPrice}
         </button>
-        
       </form>
     </div>
   );

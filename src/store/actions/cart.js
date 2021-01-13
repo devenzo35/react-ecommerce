@@ -1,12 +1,18 @@
-import { types } from '../types/types'
+import { types } from "../types/types";
 
-export const addProduct=( product )=>({
+export const loadCart = () => ({
+  type: types.LoadCart,
+  payload: JSON.parse(localStorage.getItem("cartProducts")) || [],
+});
 
-type: types.AddToCart,
-payload: product
+export const addProduct = (product) => ({
+  type: types.AddToCart,
+  payload: product,
+});
 
+export const deleteCartItem = (id) => ({
+  type: types.DeleteCartItem,
+  payload: id,
+});
 
-
-})
-
-export const cleanCart=()=>({ type: types.CleanCart})
+export const cleanCart = () => ({ type: types.CleanCart });

@@ -1,15 +1,19 @@
 module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
   
-  theme: {
-      
-      fontFamily: {
-        'nunito': ['nunito', 'sans-serif'],
-        'roboto': ['Roboto', 'sans-serif'] // Ensure 
-      },
+  plugins: [
+    require('tailwindcss'),
+    require('autoprefixer'),
+    require('@fullhuman/postcss-purgecss')({
+      content:[
+            './src/**/*.js',
+            './public/index.html'
+     ],
+
+     defaultExtractor:content=> content.match(/[A-Za-z0-9-_:/]+/g) || []
+    })
+  ]
     
-    },
 }
+    
+
+  
